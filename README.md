@@ -2,6 +2,11 @@
 
 JAX nbody implementation.
 
+## Content
+
+* [`nbody.py`](./nbody.py): naive (n^2) simulation.
+* [`nbody_distributed.py`](./nbody_distributed.py): naive (n^2) simulation, distributed over 4 GPUs.
+
 ## Install
 
 ```sh
@@ -33,6 +38,19 @@ source jax-venv/bin/activate
 
 python3 ./nbody.py
 ```
+
+On an interactive node, you would run (for a distributed example):
+
+```sh
+salloc --exclusive --account=nstaff -N 1 -n 4 -C gpu -G 4 -q interactive --gpus-per-task=1 -t 01:00:00
+
+module load python
+source jax-venv/bin/activate
+
+srun --ntasks=4 --gpus-per-task=1 ython3 nbody_distributed.py
+```
+
+And, obviously, you can run the `.slurm` scripts provided.
 
 ## TODO
 

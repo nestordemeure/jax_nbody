@@ -16,7 +16,7 @@ dt = 0.01        # Time step
 G = 1.0          # Gravitational constant
 softening = 0.1  # Softening factor
 output_folder = Path("./outputs")  # where to store outputs
-plot_name = "naive_plot.png"  # Plot file name
+plot_name = "naive_distributed_plot.png"  # Plot file name
 
 # -------------------------------
 # Initialization Function (with mass generation)
