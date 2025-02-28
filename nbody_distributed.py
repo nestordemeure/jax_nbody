@@ -26,12 +26,12 @@ from nbody import initialize_state, simulate, total_energy
 # Simulation parameters: adjust these values as needed.
 N = 20000           # Number of bodies
 dim = 2             # Spatial dimensions (2D)
-dt = 0.01           # Time step
 steps = 1000        # Number of simulation steps
+dt = 0.01           # Time step
 G = 1.0             # Gravitational constant
 softening = 0.1     # Softening factor
-plot_name = "naive_distributed_plot.png"
 output_folder = Path("./outputs")
+plot_name = "naive_distributed_plot.png"
 
 # -------------------------------
 # Sharding the Initial State
@@ -103,10 +103,11 @@ if jax.process_index() == 0:
     print("Gathering final positions to process 0...")
     final_pos_local = multihost_utils.global_array_to_host_local_array(final_pos, global_mesh, pos_pspec)
     final_pos_local = jax.device_get(final_pos_local)
+    print(f"Final positions shape: {final_pos_local.shape}")
 
     print(f"Saving plot to {plot_name}...")
     plt.figure(figsize=(6, 6))
-    plt.scatter(final_pos_local[:, 0], final_pos_local[:, 1])
+    plt.scatter(final_pos_local[:, 0], final_pos_local[:, 1], s=1)
     plt.xlabel("x")
     plt.ylabel("y")
     plt.title(f"Final Positions (energy: {energy:.2f}, time: {runtime:.3f}s, nbProcess:{num_procs})")
