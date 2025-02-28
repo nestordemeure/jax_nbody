@@ -1,6 +1,5 @@
 import time
 import jax
-import jax.numpy as jnp
 from jax import random, block_until_ready
 from jax.experimental import multihost_utils
 from jax.sharding import Mesh, PartitionSpec
@@ -13,9 +12,14 @@ import matplotlib.pyplot as plt
 # NOTE: this needs to be called BEFORE anything else.
 jax.distributed.initialize()
 
-if jax.process_index() == 0:
+# We assume that N is evenly divisible by the number of processes.
+proc = jax.process_index()
+num_procs = jax.process_count()
+print(f"Process {proc} out of {num_procs}")
+
+if proc == 0:
     print(f"Global devices: {jax.devices()}")
-print(f"[{jax.process_index()}]: Local devices: {jax.local_devices()}")
+print(f"[{proc}]: Local devices: {jax.local_devices()}")
 
 # -------------------------------
 # Simulation Parameters (constants)
@@ -36,11 +40,6 @@ plot_name = "naive_distributed_plot.png"
 # -------------------------------
 # Sharding the Initial State
 # -------------------------------
-# We assume that N is evenly divisible by the number of processes.
-proc = jax.process_index()
-num_procs = jax.process_count()
-print(f"Process {proc} out of {num_procs}")
-
 local_N = N // num_procs
 start = proc * local_N
 end = start + local_N
@@ -59,6 +58,7 @@ local_mass = mass[start:end]
 global_mesh = Mesh(jax.devices(), ('devices',))
 
 # Define partition specs to shard the "bodies" (first) axis.
+# These specs are used for constructing the global arrays.
 pos_pspec = PartitionSpec('devices', None)   # for pos of shape (N, dim)
 vel_pspec = PartitionSpec('devices', None)     # for vel of shape (N, dim)
 mass_pspec = PartitionSpec('devices')          # for mass of shape (N,)
@@ -98,19 +98,21 @@ print("Computing total energy...")
 energy = total_energy(final_pos, final_vel, final_mass, G, softening)
 print("Final total energy:", energy)
 
-# Only process 0 gathers the global final positions to host-local memory.
-if jax.process_index() == 0:
+# Only process 0 gathers the full global final positions to host-local memory.
+if proc == 0:
     print("Gathering final positions to process 0...")
-    final_pos_local = multihost_utils.global_array_to_host_local_array(final_pos, global_mesh, pos_pspec)
-    final_pos_local = jax.device_get(final_pos_local)
-    print(f"Final positions shape: {final_pos_local.shape}")
+    # Use a new partition spec that indicates no sharding along any axis.
+    host_local_pos_pspec = PartitionSpec(None, None)
+    final_pos_full = multihost_utils.global_array_to_host_local_array(final_pos, global_mesh, host_local_pos_pspec)
+    final_pos_full = jax.device_get(final_pos_full)
+    print(f"Final positions shape: {final_pos_full.shape}")
 
     print(f"Saving plot to {plot_name}...")
     plt.figure(figsize=(6, 6))
-    plt.scatter(final_pos_local[:, 0], final_pos_local[:, 1], s=1)
+    plt.scatter(final_pos_full[:, 0], final_pos_full[:, 1], s=1)
     plt.xlabel("x")
     plt.ylabel("y")
-    plt.title(f"Final Positions (energy: {energy:.2f}, time: {runtime:.3f}s, nbProcess:{num_procs})")
+    plt.title(f"Final Positions (energy:{energy:.2f} time:{runtime:.3f}s nbProcess:{num_procs})")
     plt.savefig(output_folder / plot_name)
     plt.close()
     print("Plot saved.")
