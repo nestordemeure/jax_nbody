@@ -3,14 +3,14 @@ import jax
 import jax.numpy as jnp
 from jax import random, block_until_ready
 from jax.experimental import multihost_utils
-from jax.sharding import Mesh, NamedSharding, PartitionSpec
+from jax.sharding import Mesh, PartitionSpec
 from pathlib import Path
 import matplotlib.pyplot as plt
 
 # -------------------------------
 # Distributed Initialization
 # -------------------------------
-# NOTE: this need to BEFORE anything else
+# NOTE: this needs to be called BEFORE anything else.
 jax.distributed.initialize()
 
 if jax.process_index() == 0:
@@ -98,15 +98,18 @@ print("Computing total energy...")
 energy = total_energy(final_pos, final_vel, final_mass, G, softening)
 print("Final total energy:", energy)
 
-# Gather the final positions (only the local shard is accessible).
-final_pos_np = jax.device_get(final_pos)
+# Only process 0 gathers the global final positions to host-local memory.
+if jax.process_index() == 0:
+    print("Gathering final positions to process 0...")
+    final_pos_local = multihost_utils.global_array_to_host_local_array(final_pos, global_mesh, pos_pspec)
+    final_pos_local = jax.device_get(final_pos_local)
 
-print(f"Saving plot to {jax.process_index()}_{plot_name}...")
-plt.figure(figsize=(6, 6))
-plt.scatter(final_pos_np[:, 0], final_pos_np[:, 1], s=1)
-plt.xlabel("x")
-plt.ylabel("y")
-plt.title(f"Final Positions (energy: {energy:.2f}, time: {runtime:.3f}s)")
-plt.savefig(output_folder / f"{jax.process_index()}_{plot_name}")
-plt.close()
-print("Plot saved.")
+    print(f"Saving plot to {plot_name}...")
+    plt.figure(figsize=(6, 6))
+    plt.scatter(final_pos_local[:, 0], final_pos_local[:, 1])
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.title(f"Final Positions (energy: {energy:.2f}, time: {runtime:.3f}s, nbProcess:{num_procs})")
+    plt.savefig(output_folder / plot_name)
+    plt.close()
+    print("Plot saved.")
