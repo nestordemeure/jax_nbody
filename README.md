@@ -54,4 +54,7 @@ And, obviously, you can run the `.slurm` scripts provided.
 
 ## TODO
 
-* ?
+distributed code:
+
+* local process should create their data slice, not the full data
+* the end result should only be gathered to process 0, not all to all

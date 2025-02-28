@@ -98,15 +98,12 @@ print("Computing total energy...")
 energy = total_energy(final_pos, final_vel, final_mass, G, softening)
 print("Final total energy:", energy)
 
+# To gather the full array each process
+final_pos_full = multihost_utils.process_allgather(final_pos)
+print(f"Final positions shape: {final_pos_full.shape}")
+
 # Only process 0 gathers the full global final positions to host-local memory.
 if proc == 0:
-    print("Gathering final positions to process 0...")
-    # Use a new partition spec that indicates no sharding along any axis.
-    host_local_pos_pspec = PartitionSpec(None, None)
-    final_pos_full = multihost_utils.global_array_to_host_local_array(final_pos, global_mesh, host_local_pos_pspec)
-    final_pos_full = jax.device_get(final_pos_full)
-    print(f"Final positions shape: {final_pos_full.shape}")
-
     print(f"Saving plot to {plot_name}...")
     plt.figure(figsize=(6, 6))
     plt.scatter(final_pos_full[:, 0], final_pos_full[:, 1], s=1)
