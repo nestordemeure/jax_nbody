@@ -1,22 +1,3 @@
-Process 3 out of 4
-[3]: Local devices: [CudaDevice(id=3)]
-Initializing state...
-State initialized.
-Starting simulation...
-Simulation completed in 4.088 seconds.
-Computing total energy...
-Final total energy: 350610750.0
-Saving plot to naive_plot.png...
-Plot saved.
-Done sharding:
-global_pos.shape: (20000, 2)
-global_vel.shape: (20000, 2)
-global_mass.shape: (20000,)
-Starting simulation...
-Simulation completed in 2.533 seconds.
-Computing total energy...
-Final total energy: 350610750.0
-Final positions shape: (20000, 2)
 Process 2 out of 4
 [2]: Local devices: [CudaDevice(id=2)]
 Initializing state...
@@ -27,53 +8,64 @@ Computing total energy...
 Final total energy: 350610750.0
 Saving plot to naive_plot.png...
 Plot saved.
-Done sharding:
+Sharded initial state shapes:
 global_pos.shape: (20000, 2)
 global_vel.shape: (20000, 2)
 global_mass.shape: (20000,)
 Starting simulation...
-Simulation completed in 2.157 seconds.
+Simulation completed in 2.292 seconds.
+Final total energy: 350610750.0
+Process 3 out of 4
+[3]: Local devices: [CudaDevice(id=3)]
+Initializing state...
+State initialized.
+Starting simulation...
+Simulation completed in 4.126 seconds.
 Computing total energy...
 Final total energy: 350610750.0
-Final positions shape: (20000, 2)
+Saving plot to naive_plot.png...
+Plot saved.
+Sharded initial state shapes:
+global_pos.shape: (20000, 2)
+global_vel.shape: (20000, 2)
+global_mass.shape: (20000,)
+Starting simulation...
+Simulation completed in 2.285 seconds.
+Final total energy: 350610750.0
 Process 1 out of 4
 [1]: Local devices: [CudaDevice(id=1)]
 Initializing state...
 State initialized.
 Starting simulation...
-Simulation completed in 4.104 seconds.
+Simulation completed in 4.112 seconds.
 Computing total energy...
 Final total energy: 350610750.0
 Saving plot to naive_plot.png...
 Plot saved.
-Done sharding:
+Sharded initial state shapes:
 global_pos.shape: (20000, 2)
 global_vel.shape: (20000, 2)
 global_mass.shape: (20000,)
 Starting simulation...
-Simulation completed in 2.543 seconds.
-Computing total energy...
+Simulation completed in 2.285 seconds.
 Final total energy: 350610750.0
-Final positions shape: (20000, 2)
 Process 0 out of 4
 Global devices: [CudaDevice(id=0), CudaDevice(id=1), CudaDevice(id=2), CudaDevice(id=3)]
 [0]: Local devices: [CudaDevice(id=0)]
 Initializing state...
 State initialized.
 Starting simulation...
-Simulation completed in 4.140 seconds.
+Simulation completed in 4.131 seconds.
 Computing total energy...
 Final total energy: 350610750.0
 Saving plot to naive_plot.png...
 Plot saved.
-Done sharding:
+Sharded initial state shapes:
 global_pos.shape: (20000, 2)
 global_vel.shape: (20000, 2)
 global_mass.shape: (20000,)
 Starting simulation...
-Simulation completed in 2.541 seconds.
-Computing total energy...
+Simulation completed in 2.292 seconds.
 Final total energy: 350610750.0
 Final positions shape: (20000, 2)
-Saving plot to naive_distributed_plot.png...
 Plot saved.

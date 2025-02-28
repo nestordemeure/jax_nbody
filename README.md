@@ -5,8 +5,9 @@ JAX nbody implementation.
 ## Content
 
 * [`nbody.py`](./nbody.py): naive (n^2) simulation.
-* [`nbody_distributed.py`](./nbody_distributed.py): naive (n^2) simulation, distributed over 4 GPUs.
-* [`nbody_multipole.py`](./nbody_multipole.py): simulation using the multipole method over a fixed grid.
+* [`nbody_distributed.py`](./nbody_distributed.py): naive (n^2) simulation, distributed over available GPUs (this might scale with GPU provided).
+* [`nbody_multipole.py`](./nbody_multipole.py): simulation using the multipole method over a fixed grid (non working).
+* [`nbody_barneshut.py`](./nbody_barneshut.py): simulation using the Barnes-Hut method (non working).
 
 ## Install
 
@@ -18,9 +19,6 @@ python -m venv jax-venv
 
 # Activate the virtual environment
 source jax-venv/bin/activate
-
-# Upgrade pip
-pip install --upgrade pip
 
 # Install some common dependencies
 pip install numpy scipy rich matplotlib
@@ -40,25 +38,13 @@ source jax-venv/bin/activate
 python3 ./nbody.py
 ```
 
-On an interactive node, you would run (for a distributed example):
+Run the distributed code with the following:
 
 ```sh
-salloc --exclusive --account=nstaff -N 1 -n 4 -C gpu -G 4 -q interactive --gpus-per-task=1 -t 01:00:00
-
-module load python
-source jax-venv/bin/activate
-
-srun --ntasks=4 --gpus-per-task=1 ython3 nbody_distributed.py
+sbatch run_distributed.slurm
 ```
 
-And, obviously, you can run the `.slurm` scripts provided.
-
 ## TODO
-
-distributed code:
-
-* local process should create their data slice, not the full data
-* the end result should only be gathered to process 0, not all to all
 
 algorithms:
 
