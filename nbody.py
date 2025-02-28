@@ -2,6 +2,7 @@ import jax
 import jax.numpy as jnp
 from jax import jit, lax
 import matplotlib.pyplot as plt
+from xmap import xmap
 
 # -------------------------------
 # Simulation Parameters (constants)
@@ -43,20 +44,47 @@ def body_force(pos_i, pos_j, mass_j, G, softening):
 
 def compute_accelerations(pos, mass, G, softening):
     """
-    Compute accelerations for each body using a double vmap.
-    After computing all pairwise forces (shape: [N, N, dim]),
-    zero out self-interactions in each (N, N) slice via jnp.fill_diagonal.
+    Compute the net acceleration for each body via pairwise gravitational forces,
+    using xmap for clearer named-axis vectorization.
+
+    Args:
+      pos: Array of shape (N, d) containing positions of N bodies, with axes named 'i' and 'd'.
+      mass: Array of shape (N,) containing the masses, with axis 'i'.
+      G: Gravitational constant.
+      softening: Softening parameter to avoid singularities.
+
+    Returns:
+      An array of shape (N, d) representing the net acceleration on each body.
     """
-    def forces_on_body(pos_i):
-        return jax.vmap(lambda pos_j, mass_j: body_force(pos_i, pos_j, mass_j, G, softening))(pos, mass)
-    all_forces = jax.vmap(forces_on_body)(pos)  # shape: (N, N, dim)
+    # Compute the full pairwise force matrix using xmap.
+    # The xmap call vectorizes body_force over two axes:
+    #   - 'i' (for the source body: pos_i)
+    #   - 'j' (for the target body: pos_j and mass_j)
+    # The ellipsis (...) denotes any remaining unnamed axes (here, the spatial axis 'd').
+    force_matrix = xmap(
+        body_force,
+        in_axes={
+            "pos_i": ["i", ...],
+            "pos_j": ["j", ...],
+            "mass_j": ["j"],
+            "G": float,
+            "softening": float,
+        },
+        out_axes=["i", "j", ...]
+    )(pos, pos, mass, G, softening)
+    # At this point, force_matrix has shape (N, N, d) where force_matrix[i, j, :]
+    # is the force on body i due to body j.
     
-    # For each spatial component, zero out the diagonal using jnp.fill_diagonal.
-    def zero_diag(mat):
-        return jnp.fill_diagonal(mat, 0.0, inplace=False)
-    all_forces = jax.vmap(zero_diag, in_axes=2, out_axes=2)(all_forces)
-    
-    return jnp.sum(all_forces, axis=1)
+    # Sum over axis 'j' (all bodies contributing force) to get the net acceleration on each body (minus its own).
+    net_acc = xmap(
+        lambda forces, diag_index: jnp.sum(forces) - forces[diag_index],
+        in_axes={
+            "forces": ["i", ..., "d"],
+            "diag_index": ["i"],
+        },
+        out_axes=["i", "d"]
+    )(force_matrix, jnp.arange(mass.size))
+    return net_acc
 
 # -------------------------------
 # Simulation Step Function
