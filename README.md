@@ -6,6 +6,7 @@ JAX nbody implementation.
 
 * [`nbody.py`](./nbody.py): naive (n^2) simulation.
 * [`nbody_distributed.py`](./nbody_distributed.py): naive (n^2) simulation, distributed over 4 GPUs.
+* [`nbody_multipole.py`](./nbody_multipole.py): simulation using the multipole method over a fixed grid.
 
 ## Install
 
@@ -58,3 +59,8 @@ distributed code:
 
 * local process should create their data slice, not the full data
 * the end result should only be gathered to process 0, not all to all
+
+algorithms:
+
+* multipole: no idea if the prototype is correct (but it is slow)
+* barnes hut: deadlocking?
